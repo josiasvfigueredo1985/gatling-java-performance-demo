@@ -316,9 +316,13 @@ The workflow in [gatling.yml](.github/workflows/gatling.yml) runs only when manu
 
 Maven errors and Gatling assertion failures fail the workflow. Available reports and simulation logs are uploaded even on failure as a `gatling-results-...` artifact, retained for 7 days. Download and extract it, then open the generated simulation folder's `index.html`. If execution fails before reports are created, inspect the Actions logs instead.
 
-The **Print report URL** step echoes the uploaded artifact's download URL in the logs and adds a clickable **Download report** link to the run summary. This is an artifact download, not a hosted HTML report. If no artifact was uploaded, the step displays a warning instead of a report link.
+The workflow also publishes the HTML report to GitHub Pages. After deployment, **Print report URL** echoes the browser URL and adds a clickable **Open report** link to the **publish-report** job summary. The site shows the latest published report and is replaced by the next publication. Reports are published even when Gatling assertions fail, provided an HTML report was generated; a run without an HTML report leaves the existing site unchanged and emits a warning.
 
-Reports are accessible to repository readers; do not test endpoints that would expose sensitive data in a public repository's logs or artifacts.
+Enable Pages once under **Settings → Pages → Build and deployment → Source → GitHub Actions**. Run the workflow from `main` and ensure the `github-pages` environment allows deployment from that branch.
+
+The **Print download URL** step still echoes the artifact download URL and adds a **Download report** link to the **gatling** job summary for offline viewing. If no artifact was uploaded, it displays a warning instead.
+
+The Pages report is public; do not test endpoints that would expose sensitive data in the published site, logs, or artifacts.
 
 ## Available Test Types
 

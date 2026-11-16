@@ -316,9 +316,13 @@ O workflow em [gatling.yml](.github/workflows/gatling.yml) só executa quando so
 
 Erros do Maven e falhas nas asserções do Gatling fazem o workflow falhar. Os relatórios e logs de simulação disponíveis são enviados mesmo em caso de falha como um artefato `gatling-results-...`, mantido por 7 dias. Baixe e extraia o artefato e abra o `index.html` da pasta da simulação gerada. Se a execução falhar antes de criar relatórios, consulte os logs do Actions.
 
-A etapa **Print report URL** exibe nos logs a URL de download do artefato enviado e adiciona um link clicável **Download report** ao resumo da execução. Esse link baixa o artefato; ele não hospeda o relatório HTML. Se nenhum artefato for enviado, a etapa mostra um aviso em vez de um link de relatório.
+A execução também publica o relatório HTML no GitHub Pages. Após o deploy, **Print report URL** exibe a URL para o navegador e adiciona um link clicável **Open report** ao resumo do job **publish-report**. O site mostra o último relatório publicado e é substituído na próxima publicação. Os relatórios são publicados mesmo quando as asserções do Gatling falham, desde que um relatório HTML tenha sido gerado; uma execução sem relatório HTML mantém o site existente e emite um aviso.
 
-Os relatórios ficam acessíveis aos leitores do repositório; não teste endpoints que exponham dados sensíveis nos logs ou artefatos de um repositório público.
+Habilite o Pages uma vez em **Settings → Pages → Build and deployment → Source → GitHub Actions**. Execute o workflow a partir de `main` e verifique se o ambiente `github-pages` permite deploy dessa branch.
+
+A etapa **Print download URL** continua exibindo a URL de download do artefato e adicionando um link **Download report** ao resumo do job **gatling** para consulta offline. Se nenhum artefato for enviado, ela mostra um aviso.
+
+O relatório do Pages é público; não teste endpoints que exponham dados sensíveis no site publicado, nos logs ou nos artefatos.
 
 ## Tipos de Teste Disponíveis
 

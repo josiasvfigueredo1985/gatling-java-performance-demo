@@ -45,6 +45,8 @@ jobs:
   gatling:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      pages_artifact_id: ${{ steps.upload-pages.outputs.artifact_id }}
     steps:
       - name: Check out source
         uses: actions/checkout@v6
@@ -118,16 +120,73 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
-      - name: Print report URL
+      - name: Print download URL
         if: ${{ always() }}
         env:
           REPORT_URL: ${{ steps.upload-results.outputs.artifact-url }}
         shell: bash
         run: |
           if [[ -n "$REPORT_URL" ]]; then
-            echo "Gatling report: $REPORT_URL"
+            echo "Gatling report download: $REPORT_URL"
             printf '### Gatling report\n\n[Download report](%s)\n\nExtract the artifact and open `index.html` in the simulation folder.\n' "$REPORT_URL" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "::warning::No report artifact was uploaded. Check the preceding steps for errors."
             printf '### Gatling report\n\nNo report artifact was uploaded. Check the preceding steps for errors.\n' >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      - name: Prepare browser report
+        id: prepare-report
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          import shutil
+
+          reports = list(Path("results").glob("*/index.html"))
+          if not reports:
+              print("::warning::No HTML report was generated; the published report will not be replaced.")
+          elif len(reports) != 1:
+              raise SystemExit("::error::Expected exactly one Gatling HTML report.")
+          else:
+              site = Path(os.environ["RUNNER_TEMP"]) / "gatling-report"
+              shutil.copytree(reports[0].parent, site)
+              with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+                  output.write(f"path={site.as_posix()}\n")
+                  output.write("available=true\n")
+          PY
+
+      - name: Upload browser report
+        id: upload-pages
+        if: ${{ always() && steps.prepare-report.outputs.available == 'true' }}
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ steps.prepare-report.outputs.path }}
+
+  publish-report:
+    needs: gatling
+    if: ${{ !cancelled() && needs.gatling.outputs.pages_artifact_id != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy report to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Print report URL
+        env:
+          REPORT_URL: ${{ steps.deployment.outputs.page_url }}
+        shell: bash
+        run: |
+          echo "Open Gatling report: $REPORT_URL"
+          printf '### Gatling report\n\n[Open report](%s)\n\nThis public page shows the latest published report and is replaced by the next publication.\n' "$REPORT_URL" >> "$GITHUB_STEP_SUMMARY"
