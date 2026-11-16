@@ -1,0 +1,43 @@
+{
+  "load": {
+    "users": 50,
+    "rampDuration": 30,
+    "testDuration": 60,
+    "constantUsers": 20
+  },
+  "stress": {
+    "users": 100,
+    "rampDuration": 60,
+    "testDuration": 120,
+    "constantUsers": 50
+  },
+  "spike": {
+    "users": 150,
+    "rampDuration": 15,
+    "testDuration": 90,
+    "constantUsers": 30
+  },
+  "endurance": {
+    "users": 30,
+    "rampDuration": 30,
+    "testDuration": 300,
+    "constantUsers": 30
+  },
+  "scalability": {
+    "users": 200,
+    "rampDuration": 120,
+    "testDuration": 180,
+    "constantUsers": 0,
+    "incrementUsers": 20,
+    "incrementInterval": 30,
+    "incrementSteps": 10
+  },
+  "volume": {
+    "users": 50,
+    "rampDuration": 30,
+    "testDuration": 120,
+    "constantUsers": 50,
+    "dataSize": "large",
+    "requestsPerSecond": 100
+  }
+}

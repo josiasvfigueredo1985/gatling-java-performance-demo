@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  gatling:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - MAVEN_OPTS=-Xmx2g -Xms1g -XX:+UseG1GC
+    container_name: gatling-performance-tests
+    volumes:
+      - ./results:/app/results
+      - ./.m2:/root/.m2
+    environment:
+      - JAVA_OPTS=-Xmx2g -Xms1g -XX:+UseG1GC -XX:+UseStringDeduplication --add-opens=java.base/java.lang=ALL-UNNAMED
+      - TZ=UTC
+      - MAVEN_OPTS=-Xmx2g -Xms1g -XX:+UseG1GC
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2.5G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    command: >
+      gatling:test 
+      -s /root/.m2/settings.xml
+      -Dgatling.simulationClass=example.LoadTest 
+      -DtestConfig=load 
+      -Dgatling.resultsFolder=/app/results/load
+      -Djackson.version=2.16.0
+    restart: "no"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

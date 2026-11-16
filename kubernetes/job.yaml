@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gatling-performance-test
+spec:
+  template:
+    spec:
+      containers:
+        - name: gatling
+          image: gatling-performance-tests:latest
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          env:
+            - name: JAVA_OPTS
+              value: "-Xmx1536m -Xms1024m"
+          command: ["mvn"]
+          args: ["gatling:test", "-Dgatling.simulationClass=example.LoadTest", "-DtestConfig=load"]
+          volumeMounts:
+            - name: results-volume
+              mountPath: /app/results
+      restartPolicy: Never
+      volumes:
+        - name: results-volume
+          persistentVolumeClaim:
+            claimName: gatling-results-pvc
+  backoffLimit: 0

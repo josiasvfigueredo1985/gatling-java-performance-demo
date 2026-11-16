@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gatling-performance-tests
+  labels:
+    app: gatling
+    component: performance-tests
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gatling
+  template:
+    metadata:
+      labels:
+        app: gatling
+        component: performance-tests
+    spec:
+      containers:
+      - name: gatling
+        image: gatling-performance-tests:latest
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        env:
+        - name: JAVA_OPTS
+          value: "-Xmx1536m -Xms1024m -XX:+UseG1GC -XX:+UseStringDeduplication"
+        - name: TZ
+          value: "UTC"
+        command: ["mvn"]
+        args: ["gatling:test", "-Dgatling.simulationClass=example.LoadTest", "-DtestConfig=load", "-Dgatling.resultsFolder=/app/results/load"]
+        volumeMounts:
+        - name: results-volume
+          mountPath: /app/results
+        livenessProbe:
+          exec:
+            command:
+            - cat
+            - /app/target/gatling/lastRun.txt
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          allowPrivilegeEscalation: false
+      volumes:
+      - name: results-volume
+        persistentVolumeClaim:
+          claimName: gatling-results-pvc
+      securityContext:
+        fsGroup: 1000
+        runAsNonRoot: true
+      terminationGracePeriodSeconds: 30
