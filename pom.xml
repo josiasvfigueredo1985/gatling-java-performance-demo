@@ -16,7 +16,7 @@
         <!-- Versão do maven-compiler-plugin com suporte a Java 25 -->
         <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
-        <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
+        <maven-jar-plugin.version>3.5.1</maven-jar-plugin.version>
         <!-- Atualização da versão do Jackson para compatibilidade com Gatling 3.14.5 -->
         <jackson.version>2.16.0</jackson.version>
     </properties>
