@@ -1,4 +1,4 @@
-FROM maven:3.9-eclipse-temurin-25
+FROM maven:3.9-eclipse-temurin-26
 
 # Definir variáveis de ambiente
 ENV MAVEN_OPTS="-Xmx2g -Xms1g -XX:+UseG1GC --add-opens=java.base/java.lang=ALL-UNNAMED"
