@@ -1,7 +1,6 @@
 package example;
 
 import static io.gatling.javaapi.core.CoreDsl.*;
-import io.gatling.javaapi.core.*;
 import java.time.Duration;
 
 /**

@@ -55,27 +55,97 @@ git clone https://github.com/josiasvfigueredo1985/gatling-java-performance-demo.
 cd gatling-java-performance-demo
 ```
 
-### Step 2: Create Required Scripts
+### Step 2: Use the Included Scripts
 
 The project includes the following script files in the project root directory:
 
 #### For Linux/macOS:
 
-- **run-tests.sh**: Script to run tests with Maven
-- **run-docker.sh**: Script to run tests with Docker
-- **clean.sh**: Script to clean the environment
+- **run-tests.sh**: Runs tests with the Maven Wrapper and requires a locally configured JDK 25. Example: `./run-tests.sh LoadTest load --quick`.
+- **run-docker.sh**: Runs tests in a container and requires Docker to be running and the `docker-compose` command to be available. Example: `./run-docker.sh LoadTest load --quick --rebuild`.
+- **clean.sh**: Cleans results or artifacts according to the supplied option. Example: `./clean.sh --results` asks for confirmation before deleting results.
 
-#### For Windows:
+Run commands from the project root using Bash. The test scripts require both the class (`LoadTest`) and configuration (`load`); `--quick` reduces the duration and `--rebuild` rebuilds the Docker image.
 
-- **run-tests.bat**: Script to run tests with Maven
-- **run-docker.bat**: Script to run tests with Docker
-- **clean.bat**: Script to clean the environment
+#### For Windows (PowerShell):
 
-### Step 3: Make Scripts Executable (Linux/macOS only)
+- **run-tests.bat**: Runs tests with the Maven Wrapper and requires a locally configured JDK 25. Example: `.\run-tests.bat LoadTest load --quick`.
+- **run-docker.bat**: Runs tests in a container and requires Docker to be running and the `docker-compose` command to be available. Example: `.\run-docker.bat LoadTest load --quick --rebuild`.
+- **clean.bat**: Cleans results or artifacts according to the supplied option. Example: `.\clean.bat --results` asks for confirmation before deleting results.
+
+Run commands from the project root using PowerShell with the `.\` prefix. The test scripts require both the class (`LoadTest`) and configuration (`load`); `--quick` reduces the duration and `--rebuild` rebuilds the Docker image.
+
+### Step 3: Configure Scripts and JDK
+
+#### Linux/macOS
 
 ```bash
-chmod +x *.sh
+chmod +x mvnw run-tests.sh run-docker.sh clean.sh
 ```
+
+To run tests locally with Maven, set `JAVA_HOME` to the JDK 25 directory, without `/bin`.
+
+On macOS, with JDK 25 installed:
+
+```bash
+export JAVA_HOME=$(/usr/libexec/java_home -v 25)
+```
+
+On Linux, replace the path below with your actual JDK 25 directory:
+
+```bash
+export JAVA_HOME="/path/to/jdk-25"
+```
+
+On either system, configure `PATH` and confirm Maven uses Java 25:
+
+```bash
+export PATH="$JAVA_HOME/bin:$PATH"
+./mvnw -version
+```
+
+To persist the configuration, add the corresponding `export` lines to your shell startup file (for example, `~/.bashrc` or `~/.zshrc`). Running through Docker does not require a local JDK.
+
+#### Windows (PowerShell)
+
+No `chmod` step is needed. To run tests locally with Maven, replace the path below with your installed JDK 25 directory, without `\bin`. Set the environment for the current terminal and confirm Maven uses Java 25:
+
+```powershell
+$env:JAVA_HOME = "C:\path\to\jdk-25"
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+.\mvnw.cmd -version
+```
+
+Save `JAVA_HOME` for your Windows user account:
+
+```powershell
+[Environment]::SetEnvironmentVariable("JAVA_HOME", $env:JAVA_HOME, "User")
+```
+
+The current terminal is ready to use. Restart VS Code (or your terminal application) so future terminals inherit the saved setting. If Maven reports `JAVA_HOME not found`, configure it as shown above; having `java` on `PATH` alone is not sufficient for this wrapper. Running through Docker does not require a local JDK.
+
+##### Fixing `JAVA_HOME not found` in an already-open terminal
+
+Saving `JAVA_HOME` does not update terminals that are already open. If you have saved it using the command above, reload it in the **same PowerShell terminal** where the test failed:
+
+```powershell
+$env:JAVA_HOME = [Environment]::GetEnvironmentVariable("JAVA_HOME", "User")
+```
+
+Check that `$env:JAVA_HOME` contains your JDK 25 directory. If it is empty, complete the setup above before continuing. Then update the current terminal's `PATH` and verify Maven:
+
+```powershell
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+.\mvnw.cmd -version
+```
+
+Confirm that Maven reports Java 25 before retrying:
+
+```powershell
+.\run-tests.bat LoadTest load --quick
+```
+
+Restart VS Code afterward so future terminals inherit the saved setting. The script currently prints `Test completed` even if Maven fails; that message alone does not mean tests ran successfully.
 
 ### Step 4: Create Maven Wrapper (if not present)
 
@@ -168,10 +238,12 @@ Run a quick test to verify that everything is set up correctly:
 ./run-tests.sh LoadTest load --quick
 ```
 
-#### On Windows:
-```cmd
-run-tests.bat LoadTest load --quick
+#### On Windows (PowerShell):
+```powershell
+.\run-tests.bat LoadTest load --quick
 ```
+
+Run this command from the project directory. PowerShell requires the `.\` prefix to run scripts in the current directory; otherwise, it reports that the command is not recognized. Both `LoadTest` (test class) and `load` (configuration) are required arguments. The `--quick` flag is optional and reduces the test duration.
 
 If the test runs successfully, you'll see a message indicating where to find the results.
 
@@ -190,18 +262,20 @@ If the test runs successfully, you'll see a message indicating where to find the
 ./clean.sh [--all|--results|--maven|--docker]
 ```
 
-### On Windows
+### On Windows (PowerShell)
 
-```cmd
+```powershell
 # Using Maven
-run-tests.bat [TestType] [TestConfig] [--quick]
+.\run-tests.bat <TestType> <TestConfig> [--quick]
 
 # Using Docker
-run-docker.bat [TestType] [TestConfig] [--quick] [--rebuild]
+.\run-docker.bat <TestType> <TestConfig> [--quick] [--rebuild]
 
 # Cleaning
-clean.bat [--all|--results|--maven|--docker]
+.\clean.bat [--all|--results|--maven|--docker]
 ```
+
+Replace the angle-bracketed placeholders with actual values (for example, `LoadTest load`); square brackets indicate optional arguments. Do not type the brackets.
 
 ### Examples
 
@@ -209,26 +283,42 @@ clean.bat [--all|--results|--maven|--docker]
 # Full load test
 ./run-tests.sh LoadTest load
 # or on Windows
-run-tests.bat LoadTest load
+.\run-tests.bat LoadTest load
 
 # Spike test with stress configuration
 ./run-tests.sh SpikeTest stress
 # or on Windows
-run-tests.bat SpikeTest stress
+.\run-tests.bat SpikeTest stress
 
 # Quick test to verify configuration
 ./run-tests.sh LoadTest load --quick
 # or on Windows
-run-tests.bat LoadTest load --quick
+.\run-tests.bat LoadTest load --quick
 
 # Force Docker image rebuild
 ./run-docker.sh LoadTest load --rebuild
 # or on Windows
-run-docker.bat LoadTest load --rebuild
+.\run-docker.bat LoadTest load --rebuild
 
 # Test with custom API URL and API key
 ./run-tests.sh LoadTest load -DbaseUrl=https://api.example.com -DapiKey=my-secret-key
 ```
+
+### GitHub Actions (manual runs)
+
+The workflow in [gatling.yml](.github/workflows/gatling.yml) runs only when manually requested; pushes and pull requests do not start load tests.
+
+1. Commit and push the workflow to the repository's default branch (`main`).
+2. On GitHub, open **Actions → Gatling performance tests → Run workflow**.
+3. Enter the HTTP/HTTPS base URL of a service you are authorized to load-test. It must be reachable from a GitHub-hosted runner; `localhost` refers to the runner, not your computer. Do not include credentials, query parameters, or fragments in the URL.
+4. Select the simulation and configuration. Quick mode is enabled by default and passes the same duration overrides as `--quick`; disable it to use the configured durations.
+5. Start the workflow. Java 25 and Maven dependency caching are configured automatically.
+
+Maven errors and Gatling assertion failures fail the workflow. Available reports and simulation logs are uploaded even on failure as a `gatling-results-...` artifact, retained for 7 days. Download and extract it, then open the generated simulation folder's `index.html`. If execution fails before reports are created, inspect the Actions logs instead.
+
+The **Print report URL** step echoes the uploaded artifact's download URL in the logs and adds a clickable **Download report** link to the run summary. This is an artifact download, not a hosted HTML report. If no artifact was uploaded, the step displays a warning instead of a report link.
+
+Reports are accessible to repository readers; do not test endpoints that would expose sensitive data in a public repository's logs or artifacts.
 
 ## Available Test Types
 
@@ -291,7 +381,7 @@ If you need to clean up old results, you can use the clean script:
 # Clean all results
 ./clean.sh --results
 # or on Windows
-clean.bat --results
+.\clean.bat --results
 ```
 
 ## Version Control and .gitignore
