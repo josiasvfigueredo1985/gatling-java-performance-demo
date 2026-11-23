@@ -10,7 +10,7 @@
     <properties>
         <maven.compiler.release>25</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <gatling.version>${project.version}</gatling.version>
+        <gatling.version>3.16.1</gatling.version>
         <!-- Downgrade do plugin para versão compatível -->
         <gatling-maven-plugin.version>4.3.0</gatling-maven-plugin.version>
         <!-- Versão do maven-compiler-plugin com suporte a Java 25 -->
